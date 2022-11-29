@@ -104,27 +104,31 @@ async def SUSTech_auth2(args, api:BotAPI, message: Message):
     ID_s = message.author.id[-8:]
 
     if len(args) == 1:
-        ret = "<@!%s> 您的本频道ID为%s, 请访问https://mirrors%%2Esustech%%2Eedu%%2Ecn/service/qqv?qq=%s , 填写本频道ID, 获得验证Token. 使用\"#南科认证 Token\"认证南科身份, 访问频道内容. " % (message.author.id,ID_s, ID_s)
+        ret = "<@!%s> 您的本频道ID为%s, 请访问https://%%6D%%69%%72%%72%%6F%%72%%73.%%73%%75%%73%%74%%65%%63%%68.%%65%%64%%75.%%63%%6E/service/qqv?qq=%s , 填写本频道ID, 获得验证Token. 使用\"#南科认证 Token\"认证南科身份, 访问频道内容. " % (message.author.id,ID_s, ID_s)
     elif len(args) == 2:
         if(craverify.verify(args[1], ID_s)):
             l = await api.get_guild_roles(message.guild_id)
             _log.info(l)
             l = l["roles"]
-            aim_role_id_s = "0";
+            aim_role_id = 0;
+            new_role_flag = False
             for i in l:
                 if i["name"] == authed_role_name:
-                    aim_role_id_s = (i["id"])
+                    aim_role_id = int(i["id"])
                     print(i)
-            if i == "0":
+            if aim_role_id == 0:
+                new_role_flag = True
                 create_ret = await api.create_guild_role(message.guild_id, name = authed_role_name, hoist = 1)
-                aim_role_id_s = create_ret["role_id"]
-            await api.create_guild_role_member(message.guild_id, aim_role_id_s, message.author.id)
-            ret =  "<@!%s>已获得认证用户权限" % message.author.id
+                aim_role_id = int(create_ret["role_id"])
+            await api.create_guild_role_member(message.guild_id, str(aim_role_id), message.author.id)
+            ret_new = "<@!%s>已创建身份组并获得认证用户权限" % message.author.id
+            ret_exist =  "<@!%s>已获得认证用户权限" % message.author.id
+            ret = ret_new if new_role_flag else ret_exist
         else:
             ret =  "<@!%s> 无法验证您的南科身份, 请重试. \n您的本频道ID为%s, 请访问https://%%6D%%69%%72%%72%%6F%%72%%73.%%73%%75%%73%%74%%65%%63%%68.%%65%%64%%75.%%63%%6E/service/qqv?qq=%s  , 填写本频道ID, 获得验证Token. 使用\"#南科认证 Token\"认证南科身份, 访问频道内容. " % (message.author.id, ID_s, ID_s)
-    await api.post_message(channel_id=message.channel_id, content=ret, msg_id=message.id)
+    #await api.post_message(channel_id=message.channel_id, content=ret, msg_id=message.id)
  
-    return None
+    return ret
 
 #https://mirrors.sustech.edu.cn/service/qqv?qq=%s
 
